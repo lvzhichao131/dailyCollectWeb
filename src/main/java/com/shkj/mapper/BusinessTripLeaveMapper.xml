@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.shkj.mapper.BusinessTripLeaveMapper">
+ 
+    <!-- 查询负责人名单全部信息 -->
+    <select id="getBusinessTripLeaveList" resultType="com.shkj.bean.BusinessTripLeave">
+        select * from businessTripLeave
+    </select>
+    
+    <!-- 添加负责人 -->
+    <insert id="insertBusinessTripLeave" parameterType="com.shkj.bean.BusinessTripLeave">
+    	insert into businessTripLeave(id,userNo,type,startDate,endDate,comment)
+    	values(replace(UUID(),"-",""),#{userNo},#{type},#{startDate},#{endDate},#{comment})
+    </insert>
+    
+    <!-- 修改负责人 -->
+    <update id="updateBusinessTripLeave" parameterType="com.shkj.bean.BusinessTripLeave">
+    	update businessTripLeave set userNo = #{userNo},type = #{type},
+    	        startDate = #{startDate},endDate = #{endDate},comment = #{comment}
+    	where id = #{id}    
+    </update>
+    
+    <!-- 删除负责人 -->
+    <delete id="deleteBusinessTripLeave" parameterType="String">
+    	delete from businessTripLeave where id = #{id}
+    </delete>
+
+    <!-- 根据统计日期查询当日处于休假/出差人员 -->
+    <select id="queryByDaiyDay" parameterType="String" resultType="com.shkj.bean.BusinessTripLeave">
+        select t1.*,t2.userName from businessTripLeave t1, chargeUser t2 where t1.userNo=t2.userNo and #{dailyDay} >= startDate and #{dailyDay} &lt;= endDate
+    </select>
+</mapper>

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.shkj.mapper.ChargeUserMapper">
+ 
+    <!-- 查询负责人名单全部信息 -->
+    <select id="getChargeUserList" resultType="com.shkj.bean.ChargeUser">
+        select * from chargeUser
+    </select>
+    
+    <!-- 添加负责人 -->
+    <insert id="insertChargeUser" parameterType="com.shkj.bean.ChargeUser">
+    	insert into chargeUser(userNo,userName)values(#{userNo},#{userName})
+    </insert>
+    
+    <!-- 修改负责人 -->
+    <update id="updateChargeUser" parameterType="com.shkj.bean.ChargeUser">
+    	update chargeUser set userName = #{userName} where userNo = #{userNo}    
+    </update>
+    
+    <!-- 删除负责人 -->
+    <delete id="deleteChargeUser" parameterType="String">
+    	delete from chargeUser where userNo = #{userNo}
+    </delete>
+
+    <!--查询截止当前时间未发送日志的人员-->
+    <select id="queryNosendDaily" parameterType="String" resultType="com.shkj.bean.ChargeUser">
+        select t1.* from chargeUser t1 where
+            not exists(select 1 from dailyReportInfo t2
+            where t1.userNo=t2.speakUserNo and str_to_date(t2.speakTime,'%Y%m%d%H%i%s') >= str_to_date(t2.speakTime,'%Y%m%d%H%i%s')
+            and str_to_date(#{dailyDay},'%Y%m%d%H%i%s')&lt;=date_format(now(),'%Y%m%d%H%i%s'))
+    </select>
+
+    <!--查询统计日期当日未发送日志的人员 -->
+    <select id="queryNosendForDay" parameterType="String" resultType="com.shkj.bean.ChargeUser">
+        select t1.* from chargeUser t1 where
+            not exists(select 1 from dailyReportInfo t2
+            where t1.userNo=t2.speakUserNo and str_to_date(#{dailyDay},'%Y%m%d%H%i%s')=date_format(now(),'%Y%m%d'))
+    </select>
+</mapper>

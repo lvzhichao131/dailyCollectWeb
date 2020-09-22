@@ -1,0 +1,58 @@
+# 容器平台底层采用 kubernetes（k8s） 作为编排引擎，支持原生 k8s yml定义
+# 每一个 --- 分隔代表一个 k8s 资源定义
+# 常见资源有 Deployment、Statefulsets、Service、Route、Confimap、Secret、Persistentvolumeclaim 等，详细使用方式请查阅下文【k8s reference】
+# 以下 demo 展示一个典型的容器服务本身暴露8080端口，最终通过Route提供外部路由
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: wmd-rcmc-backend
+  labels:
+    app: wmd-rcmc-backend
+  namespace: fa83-3710043-st-wmd
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: wmd-rcmc-backend
+  template:
+    metadata:
+      labels:
+        app: wmd-rcmc-backend
+    spec:
+      restartPolicy: Always
+      containers:
+        - name: wmd-rcmc-backend
+          image: [image]             # 镜像名由流水线平台填充为本次构建的镜像，开发人员需用 [image] 进行占位，如果不需流水线指定，也可填写镜像全路径
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+          resources:
+            requests:
+              cpu: '1'
+              memory: 1G
+            limits:
+              cpu: '2'
+              memory: 2G
+          env:
+            - name: JAVA_OPTS
+              value: -Dspring.profiles.active=dev -Djasypt.encryptor.password=ZzCmb@2021!@#
+            - name: TZ
+              value: Asia/Shanghai
+---
+kind: Service                        # Service 类型资源，指定一个内部路由，由 selector 字段定义服务对应的容器
+apiVersion: v1
+metadata:
+  name: wmd-rcmc-backend
+  labels:
+    app: wmd-rcmc-backend
+  namespace: fa83-3710043-st-wmd
+spec:
+  ports:
+    - targetPort: 8080              # targetPort为容器的端口
+      protocol: TCP
+      name: 8080-8080
+      port: 8080
+  selector:
+    app: wmd-rcmc-backend
